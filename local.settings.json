@@ -1,0 +1,17 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "SqlConnection": "Server=DESKTOP-04CV0LN\\SQLEXPRESS;Database=allIn1;Trusted_Connection=True;TrustServerCertificate=True",
+    "RazorpayKey": "rzp_test_SNeJ15GTPw2Cvx",
+    "RazorpaySecret": "PMfccL3KwBs6pOTnQuE48HKm",
+    "LuckyDrawEntryAmount": "1"
+  },
+  "Host": {
+    "LocalHttpPort": 7100,
+    "CORS": "*"
+  }
+  
+}
+
