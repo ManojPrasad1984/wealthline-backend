@@ -3,7 +3,7 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "SqlConnection": "Server=DESKTOP-04CV0LN\\SQLEXPRESS;Database=allIn1;Trusted_Connection=True;TrustServerCertificate=True",
+    "SqlConnection": "Server=tcp:manojdatabaseserver.database.windows.net,1433;Initial Catalog=allIn1;User ID=dbadminuser;Password=Delaplex#123;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
     "RazorpayKey": "rzp_test_SNeJ15GTPw2Cvx",
     "RazorpaySecret": "PMfccL3KwBs6pOTnQuE48HKm",
     "LuckyDrawEntryAmount": "1"
