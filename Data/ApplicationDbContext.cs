@@ -20,6 +20,7 @@ namespace Wealthline.Functions.Functions.Data
         {
             modelBuilder.Entity<Agent>().ToTable("Agents", "Wealthline_LuckyDraw");
             modelBuilder.Entity<LuckyDrawEntry>().ToTable("LuckyDrawEntries");
+            modelBuilder.Entity<LuckyDrawEntry>().HasOne(e => e.Agent).WithMany().HasForeignKey(e => e.AgentId).IsRequired(false);
         }
     }
 }
