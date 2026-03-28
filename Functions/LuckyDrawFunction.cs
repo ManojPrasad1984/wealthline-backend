@@ -197,41 +197,57 @@ namespace Wealthline.Functions.Functions
         public async Task<HttpResponseData> DownloadReceipt(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
         {
-            var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
-            string card = query["card"];
-
-            if (string.IsNullOrEmpty(card))
+            try
             {
-                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
-                return bad;
+                var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
+                string card = query["card"];
+
+                if (string.IsNullOrWhiteSpace(card))
+                {
+                    return await Fail(req, "Card number is required", HttpStatusCode.BadRequest);
+                }
+
+                var entry = await _context.LuckyDrawEntries
+                    .Include(x => x.Agent)
+                    .FirstOrDefaultAsync(x => x.CardNumber == card);
+
+                if (entry == null)
+                {
+                    return await Fail(req, "Receipt not found", HttpStatusCode.NotFound);
+                }
+
+                var pdf = PremiumReceiptService.Generate(entry);
+
+                if (pdf == null || pdf.Length == 0)
+                {
+                    return await Fail(req, "Receipt generation failed", HttpStatusCode.InternalServerError);
+                }
+
+                var fileName = $"LuckyDraw_{entry.CardNumber}.pdf";
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                response.Headers.Add("Content-Type", "application/pdf");
+                response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+                response.Headers.Add("Content-Length", pdf.Length.ToString());
+                response.Headers.Add("Cache-Control", "no-store, no-cache, must-revalidate");
+                response.Headers.Add("Pragma", "no-cache");
+                response.Headers.Add("Access-Control-Expose-Headers", "Content-Disposition, Content-Length, Content-Type");
+
+                await response.Body.WriteAsync(pdf, 0, pdf.Length);
+
+                return response;
             }
-
-            var entry = await _context.LuckyDrawEntries
-                .Include(x => x.Agent)
-                .FirstOrDefaultAsync(x => x.CardNumber == card);
-
-            if (entry == null)
+            catch (Exception ex)
             {
-                var notFound = req.CreateResponse(HttpStatusCode.NotFound);
-                return notFound;
+                return await Fail(req, "Unexpected error while generating receipt: " + ex.Message,
+                    HttpStatusCode.InternalServerError);
             }
-
-            var pdf = PremiumReceiptService.Generate(entry);
-
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "application/pdf");
-            response.Headers.Add("Content-Disposition",
-                $"attachment; filename=LuckyDraw_{entry.CardNumber}.pdf");
-
-            await response.Body.WriteAsync(pdf);
-
-            return response;
         }
 
         // 🔧 HELPER: FAIL RESPONSE
-        private async Task<HttpResponseData> Fail(HttpRequestData req, string message)
+        private async Task<HttpResponseData> Fail(HttpRequestData req, string message,
+            HttpStatusCode statusCode = HttpStatusCode.BadRequest)
         {
-            var res = req.CreateResponse(HttpStatusCode.BadRequest);
+            var res = req.CreateResponse(statusCode);
             await res.WriteAsJsonAsync(new
             {
                 success = false,
